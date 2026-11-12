@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14050E">
+<title>Love Voice</title>
+<style>
+:root{
+  --bg:#14050E; --ink:#FFF1F6; --muted:#D9B2C4; --glass:rgba(255,255,255,.08); --glass2:rgba(255,255,255,.14);
+  --line:rgba(255,170,200,.26); --pink:#FF2D6F; --pink2:#FF5C8D; --deep:#9E0F42; --gold:#FFC857;
+  --ok:#4FE3A1; --bad:#FF8A8A; --warn:#FFC857; --field:rgba(10,0,6,.55); --shadow:rgba(0,0,0,.4);
+  --display:"Arial Black","Segoe UI Black","Noto Sans Devanagari","Nirmala UI",system-ui,sans-serif;
+  --body:"Segoe UI","Noto Sans Devanagari","Nirmala UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#FFEFF4; --ink:#2B0716; --muted:#7A4559; --glass:rgba(255,255,255,.66); --glass2:rgba(255,255,255,.92);
+    --line:rgba(190,40,90,.28); --pink:#E01B5B; --pink2:#FF4C84; --deep:#8F0F3E; --gold:#9A6200;
+    --ok:#0B8A55; --bad:#C0262B; --warn:#8F5F00; --field:rgba(255,255,255,.9); --shadow:rgba(120,20,60,.22);
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:700;font-size:16px;line-height:1.55;min-height:100vh;overflow-x:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity .6s}
+body.in-app #gl{opacity:.7}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--display);font-weight:900;margin:0;line-height:1.15}
+h2{font-size:21px;margin-bottom:10px}
+h3{font-size:16px;margin-bottom:8px}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:18px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 18px 40px var(--shadow)}
+
+/* controls */
+.btn{appearance:none;font:inherit;font-weight:900;min-height:46px;padding:10px 20px;border-radius:14px;border:1px solid var(--line);background:var(--glass2);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn.primary{background:var(--pink);border-color:var(--pink2);color:#fff;box-shadow:0 6px 0 var(--deep),0 14px 24px var(--shadow)}
+.btn.primary:active{transform:translateY(5px);box-shadow:0 1px 0 var(--deep),0 4px 10px var(--shadow)}
+.btn.danger{color:var(--bad)}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:14px;border-radius:11px;box-shadow:0 3px 0 var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+input[type=text],input[type=password],input[type=number],input[type=url],select,textarea{font:inherit;font-weight:700;color:var(--ink);background:var(--field);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+textarea{line-height:1.75;resize:vertical;min-height:130px}
+input[type=range]{width:100%;accent-color:var(--pink)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
+label.f{display:grid;gap:5px;font-size:14px;color:var(--muted)}
+label.f b{color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.sb{justify-content:space-between}
+.grid{display:grid;gap:14px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:680px){.g2,.g3{grid-template-columns:minmax(0,1fr)}}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12.5px;font-weight:900;background:var(--glass2);border:1px solid var(--line)}
+.chip.ok{color:var(--ok)}.chip.bad{color:var(--bad)}.chip.warn{color:var(--warn)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer}
+.check input{width:22px;height:22px;margin-top:2px;accent-color:var(--pink);flex:none}
+
+/* lock */
+.lock{position:relative;z-index:2;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:clamp(20px,5vh,48px) 18px calc(24px + env(safe-area-inset-bottom));text-align:center}
+.lock h1{font-size:clamp(46px,12vw,92px);letter-spacing:-1px;text-shadow:0 6px 0 var(--deep),0 18px 40px var(--shadow)}
+.lock .tag{font-size:clamp(15px,3.6vw,19px);color:var(--muted);margin-top:8px}
+.lock .card{width:min(440px,100%);text-align:left}
+.lock .card h2{font-size:20px}
+.otp{font-family:var(--display);font-size:30px;letter-spacing:.5em;text-align:center;padding-left:.5em}
+.err{color:var(--bad);font-size:14px;min-height:20px;margin-top:6px}
+.note{background:var(--glass2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--warn)}
+
+/* app */
+#app{position:relative;z-index:2;max-width:1120px;margin:0 auto;padding:14px 14px 90px}
+.top{display:flex;align-items:center;gap:12px;padding:6px 2px 12px}
+.top h1{font-size:clamp(26px,6vw,38px);text-shadow:0 3px 0 var(--deep)}
+.top .grow{flex:1}
+.status{position:sticky;top:8px;z-index:20;display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-radius:16px;background:var(--glass2);border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-size:14px;cursor:pointer;box-shadow:0 10px 24px var(--shadow)}
+.status .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:none}
+.status .dot.ok{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.status .dot.bad{background:var(--bad);box-shadow:0 0 10px var(--bad)}
+.status .dot.warn{background:var(--warn)}
+.status .it{display:flex;gap:6px;align-items:baseline}
+.status .it span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:16px 0;padding-bottom:4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none;flex:none;font:inherit;font-weight:900;padding:11px 20px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{background:var(--pink);border-color:var(--pink2);color:#fff;box-shadow:0 4px 0 var(--deep)}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+.bar{height:12px;border-radius:99px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--pink);transition:width .2s}
+.vcard{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--glass);display:grid;gap:8px;align-content:start}
+.vcard.sel{border-color:var(--pink);box-shadow:0 0 0 2px var(--pink) inset}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.vcard .vn{font-family:var(--display);font-size:16px;word-break:break-word}
+.vcard .vd{font-size:14px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.star{appearance:none;border:0;background:none;color:var(--gold);font-size:24px;cursor:pointer;line-height:1;padding:0 4px}
+.hist{display:grid;gap:10px}
+.hitem{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--glass);display:grid;gap:6px}
+.idbox{word-break:break-all;font-size:13px;color:var(--muted)}
+pre.log{margin:0;max-height:220px;overflow:auto;font-size:12.5px;line-height:1.5;white-space:pre-wrap;color:var(--muted);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:10px}
+svg.spark{width:100%;height:60px;display:block}
+.pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pl 1s infinite}
+@keyframes pl{50%{opacity:.25}}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:99px;font-weight:900;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:60;max-width:92vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+audio{width:100%}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+
+/* ===== Love Voice pricing experience ===== */
+.pricing-wrap{display:grid;gap:18px}
+.pricing-hero{text-align:center;padding:26px 16px;background:radial-gradient(ellipse at 50% 0%,rgba(255,45,111,.22),transparent 65%),var(--glass)}
+.pricing-hero h2{font-size:clamp(25px,5vw,38px);text-shadow:0 4px 22px rgba(255,45,111,.28)}
+.pricing-hero p{color:var(--muted);margin-top:8px}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:14px;perspective:1000px}
+.plan-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:20px;padding:18px;background:linear-gradient(145deg,rgba(255,255,255,.11),rgba(255,45,111,.055));box-shadow:0 16px 36px var(--shadow);transition:transform .25s,border-color .25s,box-shadow .25s;transform-style:preserve-3d}
+.plan-card:before{content:"";position:absolute;inset:-80% -40%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.11),transparent 58%);transform:rotate(15deg);pointer-events:none}
+.plan-card:hover{transform:translateY(-7px) rotateX(2deg);border-color:var(--pink);box-shadow:0 22px 48px rgba(255,45,111,.17)}
+.plan-card.popular{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,200,87,.22),0 18px 40px var(--shadow)}
+.plan-ribbon{display:inline-block;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:900;letter-spacing:.07em;background:rgba(255,45,111,.18);color:var(--pink2);border:1px solid var(--line)}
+.plan-name{font-size:15px;font-weight:1000;letter-spacing:.06em;margin:13px 0 5px}
+.plan-price{font-size:32px;font-weight:1000;letter-spacing:-1px}
+.plan-mrp{font-size:13px;color:var(--muted);text-decoration:line-through}
+.plan-valid{color:var(--muted);font-size:13px;margin:6px 0 15px}
+.plan-card .btn{width:100%}
+.price-breakdown{display:grid;gap:9px}
+.price-line{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
+.price-line.total{border-top:1px solid var(--line);padding-top:12px;color:var(--ink);font-size:19px;font-weight:1000}
+.price-note{padding:12px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px}
+.owner-panel{display:grid;gap:12px}
+.owner-panel .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:680px){.owner-panel .g3{grid-template-columns:1fr}}
+
+.brand-float{position:fixed;z-index:1;left:50%;top:48%;transform:translate(-50%,-50%);width:100%;text-align:center;pointer-events:none;perspective:700px;opacity:.20}
+.brand-float span{display:inline-block;font-family:var(--display);font-size:clamp(25px,6vw,64px);font-weight:1000;letter-spacing:.08em;color:#fff;text-shadow:0 2px 0 #9e0f42,0 8px 28px rgba(255,45,111,.8);transform:rotateX(12deg);animation:brandPulse 4s ease-in-out infinite}
+@keyframes brandPulse{0%,100%{transform:rotateX(12deg) translateY(0) scale(1)}50%{transform:rotateX(12deg) translateY(-9px) scale(1.035)}}
+.gen-success{display:none;margin-top:12px;padding:12px;border-radius:14px;border:1px solid rgba(79,227,161,.5);background:rgba(79,227,161,.10);color:var(--ok);font-weight:1000;text-align:center}
+.gen-success.show{display:block;animation:successPop .55s ease both}
+.success-pop{animation:successPop .55s ease both}
+@keyframes successPop{0%{opacity:0;transform:scale(.75)}70%{transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.plan-card:hover{transform:none}}
+
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="brand-float" aria-hidden="true"><span>I LOVE LOVE VOICE</span></div>
+
+<!-- ================= LOCK ================= -->
+<div class="lock" id="lock">
+  <div>
+    <h1>Love Voice</h1>
+    <p class="tag">Awaaz jo dil tak pahunche</p>
+  </div>
+
+  <div class="glass card" id="step1">
+    <h2>Love Voice kholo</h2>
+    <label class="f"><b>Website password</b>
+      <input id="sitePassword" type="password" autocomplete="current-password" placeholder="Password daalo">
+    </label>
+    <button class="btn primary" id="passwordOpenBtn" type="button" style="width:100%;margin-top:10px">Password se Open Website</button>
+    <div class="err" id="passwordErr" role="alert"></div>
+    <div class="divider" style="margin:16px 0;text-align:center">YA ACCESS CODE</div>
+    <label class="f"><b>6-digit access code</b>
+      <input id="accessCode" class="otp" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••" aria-label="6 digit access code">
+    </label>
+    <button class="btn" id="accessCodeOpenBtn" type="button" style="width:100%;margin-top:10px">Code se Open Website</button>
+    <div class="err" id="pwErr" role="alert"></div>
+    <p class="small muted" style="margin-top:10px">Email verification ki zaroorat nahi hai. Password ya valid access code se seedha login hoga.</p>
+    <button class="btn sm" id="resumeSessionBtn" type="button" style="width:100%;margin-top:8px">Resume existing session</button>
+  </div>
+
+  <details class="glass card" style="width:min(440px,100%);text-align:left">
+    <summary style="cursor:pointer;font-weight:1000">Owner Dashboard Login</summary>
+    <label class="f" style="margin-top:12px"><b>Owner password</b>
+      <input id="ownerLoginPassword" type="password" autocomplete="current-password" placeholder="Owner password">
+    </label>
+    <button class="btn primary" id="ownerLoginBtn" type="button" style="width:100%;margin-top:10px">Owner Login</button>
+    <div class="err" id="ownerLoginErr" role="alert"></div>
+  </details>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" hidden>
+  <header class="top">
+    <svg width="42" height="42" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--pink)" d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.3 5c2 0 3.5 1 4.2 2.4h3C14.200 6 15.700 5 17.700 5 21 5 23 8.400 21.600 11.700 19.500 16.400 12 21 12 21z"/></svg>
+    <h1 class="grow">Love Voice</h1>
+    <button class="btn sm" id="lockBtn" type="button">Lock karo</button>
+  </header>
+
+  <div class="status" id="statusBar" role="status" aria-live="polite" title="Details ke liye dabao">
+    <div class="it"><i class="dot" id="stDot"></i><b id="stText">Key connect nahi hai</b></div>
+    <div class="it"><span>Ping</span><b id="stPing">-</b></div>
+    <div class="it"><span>Speed</span><b id="stSpeed">-</b></div>
+    <div class="it"><span>Data</span><b id="stData">0 KB</b></div>
+    <div class="it"><span>Net</span><b id="stNet">-</b></div>
+    <div class="it"><span>Voices</span><b id="stVoices">0</b></div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="studio" aria-selected="true">Studio</button>
+    <button class="tab" role="tab" data-tab="voices" aria-selected="false">Voices</button>
+    <button class="tab" role="tab" data-tab="clone" aria-selected="false">Voice Clone</button>
+    <button class="tab" role="tab" data-tab="stt" aria-selected="false">Awaaz se Text</button>
+    <button class="tab" role="tab" data-tab="pricing" aria-selected="false">Plans & Pricing</button>
+    <button class="tab" role="tab" data-tab="owner" aria-selected="false" id="ownerTab" hidden>Owner Codes</button>
+    <button class="tab" role="tab" data-tab="connect" aria-selected="false">Connect &amp; Status</button>
+  </nav>
+
+  <!-- STUDIO -->
+  <section id="p-studio" role="tabpanel">
+    <div class="cols">
+      <div class="grid">
+        <div class="glass">
+          <div class="row sb" style="margin-bottom:8px">
+            <h2 style="margin:0">Text likho</h2>
+            <select id="sample" style="width:auto;min-width:150px" aria-label="Sample text">
+              <option value="">Sample text</option>
+              <option value="hi1">Hindi sample</option>
+              <option value="hi2">Hindi motivation</option>
+              <option value="en1">English sample</option>
+            </select>
+          </div>
+          <textarea id="txt" style="min-height:230px" placeholder="Yahan jo bolwana hai wo likho. Lambi script bhi chalegi, apne aap hisson mein toot kar ek audio ban jayegi."></textarea>
+          <div class="row sb small muted" style="margin-top:8px">
+            <span id="txtInfo">0 characters</span>
+            <span class="row" style="gap:6px">
+              <button class="btn sm" type="button" data-ins='<break time="1s"/>'>Pause 1s</button>
+              <button class="btn sm" type="button" data-ins="[laughter]">Hasi</button>
+            </span>
+          </div>
+        </div>
+
+        <div class="glass">
+          <h2>Awaaz ki setting</h2>
+          <div class="g2">
+            <label class="f"><b>Model</b>
+              <select id="model">
+                <option value="sonic-3.5">Ultra Real 3.5 (Stable, best)</option>
+                <option value="sonic-3">Ultra Real 3</option>
+                <option value="sonic-preview">Preview (naya, test ke liye)</option>
+                <option value="sonic-latest">Latest (auto)</option>
+              </select></label>
+            <label class="f"><b>Bhasha</b><select id="lang"></select></label>
+            <label class="f"><b>Emotion</b><select id="emo"></select></label>
+            <label class="f"><b>Output format</b>
+              <select id="fmt">
+                <option value="wav44">WAV 44.1 kHz (best quality)</option>
+                <option value="wav24">WAV 24 kHz (chhoti file)</option>
+                <option value="wav48">WAV 48 kHz</option>
+                <option value="mp3128">MP3 128 kbps</option>
+                <option value="mp3192">MP3 192 kbps</option>
+              </select></label>
+          </div>
+          <div class="g2" style="margin-top:12px">
+            <label class="f"><b>Speed: <span id="spdOut">1.0x</span></b><input id="spd" type="range" min="0.6" max="1.5" step="0.05" value="1"></label>
+            <label class="f"><b>Volume: <span id="volOut">1.0x</span></b><input id="vol" type="range" min="0.5" max="2" step="0.1" value="1"></label>
+          </div>
+          <details style="margin-top:14px">
+            <summary style="cursor:pointer;font-weight:900">Advance setting</summary>
+            <div class="g3" style="margin-top:12px">
+              <label class="f"><b>Ek hissa (characters)</b><input id="chunk" type="number" min="200" max="3000" step="100" value="1000" inputmode="numeric"></label>
+              <label class="f"><b>Hisson ke beech pause</b>
+                <select id="gap"><option value="0">Koi nahi</option><option value="0.15" selected>0.15 sec</option><option value="0.4">0.4 sec</option><option value="0.8">0.8 sec</option></select></label>
+              <label class="check" style="align-self:end"><input id="live" type="checkbox" checked><span>Live chalao (WAV mein, banate hi sunai de)</span></label>
+            </div>
+          </details>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" id="gen" type="button" style="flex:1;min-height:56px;font-size:18px">Awaaz banao</button>
+          <button class="btn danger" id="stop" type="button" hidden>Roko</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="glass">
+          <h2>Chuni hui awaaz</h2>
+          <div id="vsum" class="grid" style="gap:6px"></div>
+          <label class="f" style="margin-top:12px"><b>Voice ID se connect karo</b>
+            <div class="row" style="flex-wrap:nowrap"><input id="vidInp" type="text" placeholder="Voice ID yahan paste karo" autocapitalize="off" spellcheck="false"><button class="btn sm" id="vidSet" type="button">Set</button></div></label>
+          <div class="row" style="margin-top:10px"><button class="btn sm" id="goVoices" type="button">Voice library kholo</button></div>
+        </div>
+
+        <div class="glass" id="outBox">
+          <h2>Output</h2>
+          <div id="genSuccess" class="gen-success">✨ 🎉 Voice generated successfully! Made with Love Voice 💗</div>
+          <div id="prog" hidden style="margin-bottom:12px">
+            <div class="bar"><i id="progBar"></i></div>
+            <div class="small muted" id="progTxt" style="margin-top:6px"></div>
+          </div>
+          <audio id="player" controls preload="metadata"></audio>
+          <div class="row" style="margin-top:12px">
+            <button class="btn primary" id="dl" type="button" disabled>Download</button>
+            <span class="small muted" id="outInfo">Abhi koi audio nahi.</span>
+          </div>
+        </div>
+
+        <div class="glass">
+          <div class="row sb"><h2 style="margin:0">Pichhli awaazein</h2><button class="btn sm" id="histClear" type="button">Sab hatao</button></div>
+          <div class="hist" id="hist" style="margin-top:12px"><span class="muted small">Yahan ban chuki awaazein dikhengi.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICES -->
+  <section id="p-voices" role="tabpanel" hidden>
+    <div class="glass">
+      <div class="row sb" style="margin-bottom:12px">
+        <h2 style="margin:0">Voice library</h2>
+        <div class="row"><span class="chip" id="vcount">0 voices</span><button class="btn sm" id="vreload" type="button">Dobara load</button></div>
+      </div>
+      <div class="g3">
+        <input id="vq" type="text" placeholder="Naam, bhasha ya ID se dhundho" aria-label="Search">
+        <select id="vlang" aria-label="Bhasha"></select>
+        <select id="vgender" aria-label="Gender"><option value="">Sab gender</option><option value="feminine">Female</option><option value="masculine">Male</option><option value="gender_neutral">Neutral</option></select>
+      </div>
+      <div class="row" style="margin:12px 0 14px;gap:20px">
+        <label class="check"><input id="vown" type="checkbox"><span>Sirf meri awaazein</span></label>
+        <label class="check"><input id="vfav" type="checkbox"><span>Sirf favourite</span></label>
+      </div>
+      <div id="vstate" class="small muted" style="margin-bottom:10px"></div>
+      <div class="vgrid" id="vlist"></div>
+      <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="vmore" type="button" hidden>Aur dikhao</button></div>
+    </div>
+  </section>
+
+  <!-- CLONE -->
+  <section id="p-clone" role="tabpanel" hidden>
+    <div class="cols">
+      <div class="glass grid">
+        <h2 style="margin:0">Apni awaaz clone karo</h2>
+        <p class="small muted">3 se 10 second ki saaf awaaz kaafi hai: bina music, bina shor, ek hi insaan bol raha ho.</p>
+        <div class="g2">
+          <div class="grid" style="gap:8px">
+            <label class="btn" style="cursor:pointer">Audio file chuno<input id="cFile" type="file" accept="audio/*,.wav,.mp3,.ogg,.oga,.flac,.webm" hidden></label>
+            <button class="btn" id="cRec" type="button">Mic se record karo</button>
+          </div>
+          <div class="grid" style="gap:6px;align-content:center">
+            <div id="cRecState" class="small muted">Koi clip nahi chuna.</div>
+            <audio id="cPrev" controls hidden></audio>
+          </div>
+        </div>
+        <div class="g2">
+          <label class="f"><b>Naam</b><input id="cName" type="text" maxlength="60" placeholder="Meri awaaz"></label>
+          <label class="f"><b>Bhasha (clip ki)</b><select id="cLang"></select></label>
+        </div>
+        <label class="f"><b>Tagline (32 characters tak)</b><input id="cTag" type="text" maxlength="32" placeholder="Garam aur shaant"></label>
+        <label class="f"><b>Description</b><input id="cDesc" type="text" maxlength="200" placeholder="Is awaaz ke baare mein kuch likho"></label>
+        <label class="f"><b>Kaun use kar sakta hai</b>
+          <select id="cAcc"><option value="private">Sirf main</option><option value="public">Sab log</option></select></label>
+        <label class="check"><input id="cOk" type="checkbox"><span>Ye meri apni awaaz hai ya mere paas is awaaz ko clone karne ki permission hai.</span></label>
+        <button class="btn primary" id="cGo" type="button" style="min-height:54px;font-size:17px">Clone banao</button>
+        <div class="small" id="cMsg" role="status"></div>
+      </div>
+      <div class="glass grid">
+        <h2 style="margin:0">Clone ka result</h2>
+        <div id="cRes" class="grid" style="gap:8px"><span class="muted small">Clone bante hi yahan Voice ID dikhegi aur tum use Studio mein chala sakte ho.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STT -->
+  <section id="p-stt" role="tabpanel" hidden>
+    <div class="cols">
+      <div class="glass grid">
+        <h2 style="margin:0">Awaaz se text</h2>
+        <div class="g2">
+          <label class="btn" style="cursor:pointer">Audio file chuno<input id="sFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.mp4,.ogg,.flac,.webm" hidden></label>
+          <button class="btn" id="sRec" type="button">Mic se record karo</button>
+        </div>
+        <div id="sState" class="small muted">Koi audio nahi chuna.</div>
+        <audio id="sPrev" controls hidden></audio>
+        <label class="f"><b>Bhasha</b><select id="sLang"></select></label>
+        <button class="btn primary" id="sGo" type="button" style="min-height:52px">Text nikalo</button>
+        <div class="small" id="sMsg" role="status"></div>
+      </div>
+      <div class="glass grid">
+        <h2 style="margin:0">Text</h2>
+        <textarea id="sOut" style="min-height:240px" placeholder="Transcript yahan aayega"></textarea>
+        <div class="row">
+          <button class="btn sm" id="sCopy" type="button">Copy</button>
+          <button class="btn sm" id="sDl" type="button">.txt download</button>
+          <button class="btn sm" id="sToStudio" type="button">Studio mein bhejo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- PRICING -->
+  <section id="p-pricing" role="tabpanel" hidden>
+    <div class="pricing-wrap">
+      <div class="glass pricing-hero">
+        <span class="plan-ribbon">LOVE VOICE PREMIUM</span>
+        <h2 style="margin-top:12px">Choose Your Perfect Voice Plan</h2>
+        <p>Unlock premium AI voices and create amazing voiceovers with ease.</p>
+      </div>
+      <div class="plan-grid" id="planGrid"></div>
+      <div class="cols">
+        <div class="glass grid">
+          <h2>Checkout summary</h2>
+          <div id="checkoutEmpty" class="muted small">Plan select karne par yahan poora price breakdown dikhega.</div>
+          <div id="checkoutBox" hidden>
+            <div class="row sb"><b id="checkoutPlan">Plan</b><span class="chip warn" id="checkoutValidity">Validity</span></div>
+            <div class="price-breakdown" style="margin-top:14px">
+              <div class="price-line"><span>Original MRP</span><b id="coMrp">₹0.00</b></div>
+              <div class="price-line"><span>Discount</span><b id="coDiscount">−₹0.00</b></div>
+              <div class="price-line"><span>Discounted plan price</span><b id="coPrice">₹0.00</b></div>
+              <div class="price-line"><span id="coTaxLabel">GST</span><b id="coTax">₹0.00</b></div>
+              <div class="price-line"><span>Website / service fee</span><b id="coFee">₹20.00</b></div>
+              <div class="price-line total"><span>Final payable</span><b id="coTotal">₹0.00</b></div>
+            </div>
+            <div class="price-note" style="margin-top:12px">GST tabhi joda jayega jab admin settings mein tax applicable enable ho. Final amount server par dobara calculate hona chahiye.</div>
+            <button class="btn primary" id="payNow" type="button" style="width:100%;margin-top:14px">Secure payment setup pending</button>
+          </div>
+        </div>
+        <div class="glass grid">
+          <h2>Subscription details</h2>
+          <p class="small muted">Payment gateway abhi is HTML file mein configured nahi hai. Isliye yahan koi fake payment ya automatic plan activation nahi hoga.</p>
+          <div class="price-note">Production use ke liye secure backend, payment signature verification, webhook aur database zaroori hain. Razorpay Secret Key ko HTML mein kabhi mat daalna.</div>
+          <div class="row">
+            <button class="btn" id="ownerPricingBtn" type="button">Owner pricing settings</button>
+          </div>
+          <div id="ownerPricing" class="owner-panel" hidden>
+            <p class="small muted">Owner login session required.</p>
+            <button class="btn primary" id="ownerPricingUnlock" type="button">Open settings</button>
+            <div id="ownerPricingFields" hidden class="grid">
+              <div class="g3">
+                <label class="f"><b>GST applicable?</b><select id="taxEnabled"><option value="false">No</option><option value="true">Yes</option></select></label>
+                <label class="f"><b>GST rate (%)</b><input id="taxRate" type="number" min="0" max="28" step=".01" value="18"></label>
+                <label class="f"><b>Service fee (₹)</b><input id="serviceFee" type="number" min="0" max="10000" step=".01" value="20"></label>
+              </div>
+              <label class="check"><input id="taxInclusive" type="checkbox"><span>Plan price tax-inclusive hai (invoice par tax breakup backend se calculate hoga)</span></label>
+              <p class="small muted">Yeh settings sirf isi browser mein preview ke liye save hoti hain. Real users aur payments par lagu karne ke liye backend admin panel chahiye.</p>
+              <button class="btn primary" id="savePricingSettings" type="button">Save preview settings</button>
+              <div id="pricingSaved" class="small" role="status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="p-owner" role="tabpanel" hidden>
+    <div class="glass grid">
+      <div class="row sb"><div><h2 style="margin:0">Owner Code Management</h2><p class="small muted">100 exact codes · owner-only view</p></div><button class="btn sm danger" id="ownerLogoutBtn" type="button">Owner Logout</button></div>
+      <div class="g3">
+        <label class="f"><b>Filter status</b><select id="codeStatusFilter"><option value="all">All statuses</option><option value="available">Available</option><option value="locked">Locked</option><option value="permanently_used">Permanently Used</option><option value="used">Used (has history)</option></select></label>
+        <label class="f"><b>Group</b><select id="codeGroupFilter"><option value="all">All groups</option><option value="1">Group 1 · 4 hours</option><option value="2">Group 2 · 24 hours</option><option value="3">Group 3 · one-time</option></select></label>
+        <label class="f"><b>Search exact code</b><input id="codeSearch" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"></label>
+      </div>
+      <div class="row">
+        <button class="btn sm" id="codesRefresh" type="button">Refresh</button>
+        <button class="btn sm" id="copyAllCodes" type="button">Copy All</button>
+        <button class="btn sm" id="downloadCodes" type="button">Download Codes CSV</button>
+        <span class="chip" id="codesCount">100 codes</span>
+      </div>
+      <div class="price-note">Code status and usage history are checked securely by the server. No email address is needed for login.</div>
+      <div style="overflow:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:760px;font-size:13px">
+          <thead><tr><th style="text-align:left;padding:10px">Code</th><th>Group</th><th>Status</th><th>Last used (date/time)</th><th>Cooldown remaining</th><th>Action</th></tr></thead>
+          <tbody id="codesTable"><tr><td colspan="6" class="muted" style="padding:14px">Owner login ke baad codes load honge.</td></tr></tbody>
+        </table>
+      </div>
+      <h3>Usage history</h3>
+      <div id="codeHistory" class="hist"><span class="muted small">No history loaded.</span></div>
+    </div>
+  </section>
+
+  <!-- CONNECT -->
+  <section id="p-connect" role="tabpanel" hidden>
+    <div class="cols">
+      <div class="grid">
+        <div class="glass grid">
+          <h2 style="margin:0">API connect karo</h2>
+          <label class="f"><b>API key</b>
+            <div class="row" style="flex-wrap:nowrap"><input id="keyInp" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_car_..."><button class="btn sm" id="keyShow" type="button">Dikhao</button></div></label>
+          <p class="small muted">Key sirf is page ki memory mein rehti hai aur seedha awaaz service ko jati hai. Page band hote hi hat jati hai, isliye har baar dobara daalni hogi.</p>
+          <div class="row">
+            <button class="btn primary" id="connBtn" type="button">Connect karo</button>
+            <button class="btn" id="discBtn" type="button">Hatao</button>
+          </div>
+          <details>
+            <summary style="cursor:pointer;font-weight:900">Advance</summary>
+            <div class="grid" style="margin-top:12px">
+              <label class="f"><b>API version</b><input id="verInp" type="text" value="2026-03-01"></label>
+              <label class="f"><b>Proxy URL (zaroorat ho tabhi)</b><input id="proxyInp" type="url" placeholder="https://tumhara-proxy.example.com"></label>
+            </div>
+          </details>
+        </div>
+        <div class="glass grid">
+          <h2 style="margin:0">Speed test</h2>
+          <p class="small muted">5 baar server ko ping karke latency naapta hai.</p>
+          <button class="btn" id="spdTest" type="button">Test chalao</button>
+          <div id="spdRes" class="small"></div>
+          <svg class="spark" id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" aria-label="Ping history"></svg>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="glass grid">
+          <h2 style="margin:0">Status aur dikkat</h2>
+          <div id="diag" class="grid" style="gap:8px"><span class="muted small">Connect karne ke baad yahan poori jaankari dikhegi.</span></div>
+          <div id="netInfo" class="small muted"></div>
+        </div>
+        <div class="glass grid">
+          <div class="row sb"><h2 style="margin:0">Activity log</h2><button class="btn sm" id="logClear" type="button">Saaf</button></div>
+          <pre class="log" id="log">Abhi kuch nahi.</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* PREVIEW-ONLY demo backend (the real package uses the Node server). Demo logins:
+   site password JASHISH1018 | access code 684219 / 628403 | owner password 1018jah */
+(function(){
+  var real=window.fetch.bind(window),used={},ownerOn=false,userOn=false,hist=[];
+  var codes=[["684219",1],["927405",1],["756092",2],["420817",2],["628403",3],["174829",3]];
+  function J(o,s){return Promise.resolve(new Response(JSON.stringify(o),{status:s||200,headers:{"Content-Type":"application/json"}}));}
+  window.fetch=function(u,o){
+    u=String(u);if(u.indexOf("/api/")!==0)return real(u,o);
+    var b={};try{b=JSON.parse((o&&o.body)||"{}");}catch(e){}
+    if(u==="/api/auth/password")return b.password==="JASHISH1018"?(userOn=true,J({ok:true})):J({error:"Website password galat hai."},401);
+    if(u==="/api/auth/access"){
+      var c=codes.find(function(x){return x[0]===b.code;});
+      if(!c)return J({error:"Ye access code valid nahi hai."},400);
+      var s=used[b.code];
+      if(s&&c[1]===3)return J({error:"Ye code ek baar use ho chuka hai aur ab permanently band hai."},409);
+      if(s&&s>Date.now())return J({error:"Ye code abhi locked hai. Cooldown khatam hone ke baad try karo."},409);
+      used[b.code]=Date.now()+(c[1]===1?4:c[1]===2?24:1e6)*36e5;hist.unshift({code:b.code,usedAt:new Date().toISOString(),group:c[1]});userOn=true;
+      return J({ok:true,group:c[1]});
+    }
+    if(u==="/api/auth/me")return userOn?J({email:null,accessCode:null,loginType:"password"}):J({error:"login required"},401);
+    if(u==="/api/owner/login")return b.password==="1018jah"?(ownerOn=true,J({ok:true})):J({error:"Incorrect owner password."},401);
+    if(u==="/api/owner/me")return ownerOn?J({ok:true}):J({error:"Owner authentication required."},401);
+    if(u==="/api/owner/logout"){ownerOn=false;return J({ok:true});}
+    if(u==="/api/owner/codes"&&ownerOn)return J({codes:codes.map(function(c){var t=used[c[0]]||0,perm=c[1]===3&&t;var left=perm?0:Math.max(0,t-Date.now());
+      return {code:c[0],group:c[1],usageCount:t?1:0,status:perm?"permanently_used":left?"locked":"available",statusLabel:perm?"Permanently Used":left?"Locked":"Available",lastUsedAt:t?new Date().toISOString():null,cooldownRemainingMs:left};})});
+    if(u==="/api/owner/history"&&ownerOn)return J({history:hist});
+    return J({error:"Owner authentication required."},401);
+  };
+})();
+</script>
+<script>
+"use strict";
+/* =====================================================================
+   SETTINGS (yahin se badlo)
+   3. Service ID, Template ID aur Public Key neeche daalo
+   ===================================================================== */
+const CONFIG = {
+  IDLE_LOCK_MS: 20 * 60 * 1000,
+  DEFAULT_API_KEY: ""
+};
+
+(() => {
+/* ============================ helpers ============================ */
+const el = id => document.getElementById(id);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const clean = s => String(s == null ? "" : s).replace(/carte?sia/gi, "Love Voice");
+const sleep = (ms, signal) => new Promise((res, rej) => {
+  const t = setTimeout(res, ms);
+  if (signal) signal.addEventListener("abort", () => { clearTimeout(t); rej(Object.assign(new Error("abort"), { name: "AbortError" })); }, { once: true });
+});
+const fmtB = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(2) + " MB";
+const fmtT = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function setErr(id, msg) { const e = document.getElementById(id); if (e) e.textContent = msg || ""; }
+let toastT;
+function toast(m) { const t = el("toast"); t.textContent = clean(m); t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2600); }
+const logs = [];
+function log(level, msg) {
+  logs.unshift(new Date().toLocaleTimeString() + " [" + level + "] " + clean(msg));
+  if (logs.length > 60) logs.pop();
+  const l = el("log"); if (l) l.textContent = logs.join("\n");
+}
+async function copy(text, msg) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = text; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (_) {} ta.remove(); }
+  toast(msg || "Copy ho gaya");
+}
+function saveBlob(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
+
+/* sha256 (secure-context par bhi chalta hai) */
+function sha256(msg) {
+  const K = [], H = []; let n = 2, c = 0;
+  while (c < 64) { let p = true; for (let i = 2; i * i <= n; i++) if (n % i === 0) { p = false; break; }
+    if (p) { if (c < 8) H[c] = (Math.pow(n, .5) * 4294967296) | 0; K[c++] = (Math.pow(n, 1 / 3) * 4294967296) | 0; } n++; }
+  const b = new TextEncoder().encode(msg), l = b.length, total = ((l + 9 + 63) >> 6) << 6, buf = new Uint8Array(total);
+  buf.set(b); buf[l] = 0x80; const dv = new DataView(buf.buffer), bits = l * 8;
+  dv.setUint32(total - 8, Math.floor(bits / 4294967296)); dv.setUint32(total - 4, bits >>> 0);
+  const rr = (v, a) => (v >>> a) | (v << (32 - a)); let h = H.slice(); const w = new Array(64);
+  for (let off = 0; off < total; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 64; i++) { const s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10); w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0; }
+    let [a, bb, cc, d, e, f, g, hh] = h;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + K[i] + w[i]) | 0;
+      const S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & bb) ^ (a & cc) ^ (bb & cc), t2 = (S0 + mj) | 0;
+      hh = g; g = f; f = e; e = (d + t1) | 0; d = cc; cc = bb; bb = a; a = (t1 + t2) | 0;
+    }
+    h = [(h[0] + a) | 0, (h[1] + bb) | 0, (h[2] + cc) | 0, (h[3] + d) | 0, (h[4] + e) | 0, (h[5] + f) | 0, (h[6] + g) | 0, (h[7] + hh) | 0];
+  }
+  return h.map(x => (x >>> 0).toString(16).padStart(8, "0")).join("");
+}
+const safeEq = (a, b) => { if (a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; };
+
+/* ============================ state ============================ */
+const HOST = ["https://api.", "carte", "sia", ".ai"].join("");
+const H_VER = ["Carte", "sia-Version"].join("");
+const S = {
+  key: "", version: "2026-03-01", proxy: "", connected: false, state: "idle", err: null,
+  voices: [], favs: new Set(), vShow: 48,
+  voiceId: "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4", voiceName: "Skylar - Friendly Guide", voiceLang: "en",
+  hist: [], totalDown: 0, speed: 0, lat: [], lastLat: 0, busy: false, abort: null,
+  ac: null, analyser: null, freq: null, playerNode: null, cloneBlob: null, cloneName: "", sttBlob: null, sttName: "",
+  lastBlob: null, lastExt: "wav", unlocked: false, lastAct: Date.now()
+};
+const LANGS = ["hi","en","es","fr","de","pt","it","ja","ko","zh","ru","tr","pl","nl","sv","ar","bn","ta","te","gu","kn","ml","mr","pa","ur","id","vi","th","uk","cs","ro","el","fi","da","hu","no","he","ms","tl","bg","hr","sk","ka","or"];
+const LN = (() => { let dn = null; try { dn = new Intl.DisplayNames(["en"], { type: "language" }); } catch (_) {} return c => { try { return dn ? dn.of(c) : c; } catch (_) { return c; } }; })();
+const EMOS = ["", "neutral", "happy", "excited", "enthusiastic", "calm", "content", "peaceful", "serene", "affectionate", "grateful", "sympathetic", "curious", "confident", "determined", "proud", "contemplative", "nostalgic", "melancholic", "sad", "surprised", "mysterious", "flirtatious", "angry"];
+const SAMPLES = {
+  hi1: "नमस्ते दोस्तों, आपका स्वागत है। आज हम एक बहुत ही सुंदर बात सीखेंगे, जो आपके जीवन को बदल सकती है।",
+  hi2: "जब मन अशांत हो, तब एक गहरी सांस लो। हर मुश्किल का हल तुम्हारे भीतर ही छिपा है। विश्वास रखो, सब ठीक होगा।",
+  en1: "Hello! Welcome to Love Voice. This is a quick sample to hear how natural your voice sounds."
+};
+
+/* ============================ API layer ============================ */
+class ApiError extends Error { constructor(code, status, msg) { super(msg); this.code = code; this.status = status; } }
+const baseUrl = () => (S.proxy ? S.proxy.replace(/\/+$/, "") : HOST);
+async function api(path, o = {}) {
+  if (!S.key) throw new ApiError("NOKEY", 0, "API key nahi daali gayi");
+  const url = new URL(baseUrl() + path);
+  if (o.query) for (const [k, v] of Object.entries(o.query)) if (v != null && v !== "") url.searchParams.set(k, v);
+  const headers = { Authorization: "Bearer " + S.key, [H_VER]: S.version };
+  let body;
+  if (o.json) { headers["Content-Type"] = "application/json"; body = JSON.stringify(o.json); }
+  else if (o.form) body = o.form;
+  const ctrl = new AbortController(); let timedOut = false;
+  if (o.signal) { if (o.signal.aborted) ctrl.abort(); else o.signal.addEventListener("abort", () => ctrl.abort(), { once: true }); }
+  const to = setTimeout(() => { timedOut = true; ctrl.abort(); }, o.timeout || 60000);
+  let res;
+  try { res = await fetch(url, { method: o.method || "GET", headers, body, signal: ctrl.signal }); }
+  catch (e) {
+    clearTimeout(to);
+    if (timedOut) throw new ApiError("TIMEOUT", 0, "Server ne time par jawab nahi diya");
+    if (e.name === "AbortError") throw e;
+    throw new ApiError("NETWORK", 0, "Request server tak nahi pahunchi");
+  }
+  clearTimeout(to);
+  if (!res.ok) {
+    let msg = "";
+    try { const t = await res.text(); try { const j = JSON.parse(t); msg = j.message || (j.error && (j.error.message || j.error)) || j.detail || t; } catch (_) { msg = t; } } catch (_) {}
+    throw new ApiError("HTTP", res.status, clean(typeof msg === "string" ? msg : JSON.stringify(msg)).slice(0, 300));
+  }
+  return res;
+}
+async function apiJson(path, o = {}) {
+  const t0 = performance.now(); const res = await api(path, o); const ttfb = performance.now() - t0;
+  const buf = await res.arrayBuffer(); const total = performance.now() - t0;
+  noteLatency(ttfb); noteTransfer(buf.byteLength, total);
+  if (!buf.byteLength) return {};
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+function friendly(e) {
+  const m = clean(e && e.message || "");
+  if (e.code === "NOKEY") return { short: "Key nahi hai", long: "Pehle Connect tab mein API key daalo.", fix: "Connect & Status tab kholo." };
+  if (e.code === "NETWORK") return { short: "Network dikkat", long: "Server tak request nahi pahunchi.", fix: "Internet check karo, VPN ya ad-blocker band karo. Agar sab theek hai to browser seedhi request rok raha hai (CORS). Us case mein Advance mein apna Proxy URL daalo." };
+  if (e.code === "TIMEOUT") return { short: "Server slow hai", long: "Server ne time par jawab nahi diya.", fix: "Thodi der baad dobara try karo ya chhota text bhejo." };
+  const s = e.status;
+  if (s === 401 || s === 403) return { short: "Key galat hai", long: "API key galat, expire ya is kaam ki permission nahi hai. " + m, fix: "Dashboard se nayi key banao aur dobara connect karo." };
+  if (s === 402) return { short: "Credits khatam", long: "Plan ya credits ki limit poori ho gayi. " + m, fix: "Account mein credits check karo." };
+  if (s === 404) return { short: "ID nahi mila", long: "Voice ID ya endpoint nahi mila. " + m, fix: "Voice ID dobara check karo." };
+  if (s === 413) return { short: "File badi hai", long: "File ka size limit se zyada hai. " + m, fix: "16 MB se chhoti file do." };
+  if (s === 400 || s === 422) return { short: "Request galat", long: m || "Setting mein mismatch hai.", fix: "Bhasha, model aur awaaz ka combination check karo." };
+  if (s === 429) return { short: "Limit lag gayi", long: "Ek saath bahut requests ho gayi. " + m, fix: "Kuch second ruk kar dobara chalao." };
+  if (s >= 500) return { short: "Server problem", long: "Server side dikkat hai. " + m, fix: "Thodi der baad dobara try karo." };
+  return { short: "Dikkat aayi", long: m || "Unknown error", fix: "Activity log dekho." };
+}
+
+/* ============================ status ============================ */
+function noteLatency(ms) { S.lastLat = ms; S.lat.push(Math.round(ms)); if (S.lat.length > 40) S.lat.shift(); renderStatus(); }
+function noteTransfer(bytes, ms) { S.totalDown += bytes; if (ms > 5 && bytes > 0) S.speed = bytes / 1024 / (ms / 1000); renderStatus(); }
+function setState(st, err) { S.state = st; S.err = err || null; S.connected = st === "ok"; renderStatus(); renderDiag(); }
+function netText() {
+  const c = navigator.connection; if (!navigator.onLine) return "Offline";
+  return c ? ((c.effectiveType || "online").toUpperCase() + (c.downlink ? " " + c.downlink + " Mbps" : "")) : "Online";
+}
+function renderStatus() {
+  const d = el("stDot"); d.className = "dot " + ({ ok: "ok", error: "bad", connecting: "warn" }[S.state] || "");
+  el("stText").textContent = { idle: "Key connect nahi hai", connecting: "Connect ho raha hai...", ok: "Connected", error: S.err ? friendly(S.err).short : "Dikkat" }[S.state];
+  el("stPing").textContent = S.lastLat ? Math.round(S.lastLat) + " ms" : "-";
+  el("stSpeed").textContent = S.speed ? (S.speed >= 1024 ? (S.speed / 1024).toFixed(2) + " MB/s" : S.speed.toFixed(0) + " KB/s") : "-";
+  el("stData").textContent = fmtB(S.totalDown);
+  el("stNet").textContent = netText();
+  el("stVoices").textContent = S.voices.length;
+  drawSpark();
+}
+function drawSpark() {
+  const svg = el("spark"); if (!svg) return; const a = S.lat; if (a.length < 2) { svg.innerHTML = ""; return; }
+  const mx = Math.max(...a, 1), pts = a.map((v, i) => (i / (a.length - 1) * 300).toFixed(1) + "," + (56 - v / mx * 50).toFixed(1)).join(" ");
+  svg.innerHTML = `<polyline fill="none" stroke="var(--pink)" stroke-width="3" stroke-linejoin="round" points="${pts}"/>`;
+}
+function renderDiag() {
+  const d = el("diag"); let h = "";
+  if (S.state === "ok") h = `<div class="row"><span class="chip ok">Connected</span><span class="chip">${S.voices.length} voices</span><span class="chip">${Math.round(S.lastLat)} ms</span></div><p class="small muted">Sab kuch theek hai. Studio mein jaakar awaaz bana sakte ho.</p>`;
+  else if (S.state === "error" && S.err) { const f = friendly(S.err); h = `<div class="row"><span class="chip bad">${esc(f.short)}</span>${S.err.status ? `<span class="chip">Code ${S.err.status}</span>` : ""}</div><p>${esc(f.long)}</p><p class="small muted"><b>Kya karna hai:</b> ${esc(f.fix)}</p>`; }
+  else if (S.state === "connecting") h = `<p><span class="pulse"></span> Connect ho raha hai...</p>`;
+  else h = `<span class="muted small">Connect karne ke baad yahan poori jaankari dikhegi.</span>`;
+  d.innerHTML = h;
+  el("netInfo").textContent = "Internet: " + netText() + (navigator.connection && navigator.connection.rtt ? " | RTT " + navigator.connection.rtt + " ms" : "");
+}
+
+/* ============================ connect ============================ */
+async function connect() {
+  const k = el("keyInp").value.trim(); if (!k) { toast("Pehle API key daalo"); return; }
+  S.key = k; S.version = el("verInp").value.trim() || "2026-03-01"; S.proxy = el("proxyInp").value.trim();
+  setState("connecting"); log("info", "Connect shuru");
+  try {
+    await apiJson("/voices", { query: { limit: 1 } });
+    setState("ok"); toast("Connect ho gaya"); log("ok", "Connected, ping " + Math.round(S.lastLat) + " ms");
+    await loadVoices();
+  } catch (e) { S.connected = false; setState("error", e); log("error", "Connect fail: " + (e.status || e.code) + " " + e.message); toast(friendly(e).short); }
+}
+function disconnect() { S.key = ""; el("keyInp").value = ""; S.voices = []; setState("idle"); renderVoices(); toast("Key hata di"); log("info", "Key hataayi"); }
+async function speedTest() {
+  if (!S.key) { toast("Pehle connect karo"); return; }
+  const r = []; el("spdRes").textContent = "Test chal raha hai...";
+  try { for (let i = 0; i < 5; i++) { const t0 = performance.now(); await apiJson("/voices", { query: { limit: 1 } }); r.push(performance.now() - t0); } }
+  catch (e) { el("spdRes").textContent = "Test fail: " + friendly(e).short; return; }
+  const avg = r.reduce((a, b) => a + b, 0) / r.length, mn = Math.min(...r), mx = Math.max(...r);
+  el("spdRes").innerHTML = `Ausat <b>${avg.toFixed(0)} ms</b>, sabse tez ${mn.toFixed(0)} ms, sabse slow ${mx.toFixed(0)} ms. ` + (avg < 400 ? '<span class="chip ok">Tez</span>' : avg < 900 ? '<span class="chip warn">Theek</span>' : '<span class="chip bad">Slow</span>');
+}
+
+/* ============================ voices ============================ */
+const normVoice = v => ({ id: v.id, name: v.name || "Voice", description: v.description || v.tagline || "", language: v.language || "", country: v.country || "", gender: v.gender || "", is_owner: v.is_owner !== undefined ? !!v.is_owner : true, preview: v.preview_file_url || "" });
+async function loadVoices() {
+  el("vstate").textContent = "Voices load ho rahi hain..."; const all = []; let after = null, useExpand = true;
+  try {
+    for (let page = 0; page < 40; page++) {
+      const q = { limit: 100 }; if (useExpand) q["expand[]"] = "preview_file_url"; if (after) q.starting_after = after;
+      let j;
+      try { j = await apiJson("/voices", { query: q }); }
+      catch (e) { if (useExpand && e.status === 400) { useExpand = false; page--; continue; } throw e; }
+      const arr = j.data || []; arr.forEach(v => all.push(normVoice(v)));
+      el("vstate").textContent = all.length + " voices load hui...";
+      if (!j.has_more || !arr.length) break; after = arr[arr.length - 1].id;
+    }
+    all.sort((a, b) => (b.is_owner - a.is_owner) || a.name.localeCompare(b.name));
+    S.voices = all; log("ok", all.length + " voices load hui");
+  } catch (e) { log("error", "Voices load fail: " + e.message); el("vstate").textContent = "Voices load nahi hui: " + friendly(e).short; }
+  buildLangFilter(); renderVoices(); renderStatus(); renderVsum();
+}
+function buildLangFilter() {
+  const set = [...new Set(S.voices.map(v => v.language).filter(Boolean))].sort((a, b) => LN(a).localeCompare(LN(b)));
+  const cur = el("vlang").value; el("vlang").innerHTML = '<option value="">Sab bhasha</option>' + set.map(c => `<option value="${c}">${esc(LN(c))}</option>`).join(""); el("vlang").value = cur;
+}
+const GL_ = { feminine: "Female", masculine: "Male", gender_neutral: "Neutral" };
+function renderVoices() {
+  const q = el("vq").value.trim().toLowerCase(), lang = el("vlang").value, g = el("vgender").value, own = el("vown").checked, fav = el("vfav").checked;
+  const list = S.voices.filter(v => (!lang || v.language === lang) && (!g || v.gender === g) && (!own || v.is_owner) && (!fav || S.favs.has(v.id)) &&
+    (!q || (v.name + " " + v.description + " " + v.language + " " + LN(v.language) + " " + v.country + " " + v.id).toLowerCase().includes(q)));
+  el("vcount").textContent = list.length + " / " + S.voices.length + " voices";
+  if (S.key && !S.voices.length && S.state === "ok") el("vstate").textContent = "Koi voice nahi mili.";
+  else if (S.voices.length) el("vstate").textContent = "";
+  else if (!S.key) el("vstate").textContent = "Voices dekhne ke liye pehle Connect tab mein key daalo.";
+  el("vlist").innerHTML = list.slice(0, S.vShow).map(v => `<article class="vcard${v.id === S.voiceId ? " sel" : ""}">
+    <div class="row sb" style="flex-wrap:nowrap"><span class="vn">${esc(v.name)}</span><button class="star" data-act="fav" data-id="${esc(v.id)}" aria-label="Favourite">${S.favs.has(v.id) ? "★" : "☆"}</button></div>
+    <p class="vd">${esc(v.description) || "&nbsp;"}</p>
+    <div class="row" style="gap:6px">${v.language ? `<span class="chip">${esc(LN(v.language))}</span>` : ""}${v.country ? `<span class="chip">${esc(v.country)}</span>` : ""}${v.gender ? `<span class="chip">${GL_[v.gender] || esc(v.gender)}</span>` : ""}${v.is_owner ? '<span class="chip ok">Meri</span>' : ""}</div>
+    <div class="row" style="gap:8px"><button class="btn sm primary" data-act="use" data-id="${esc(v.id)}">Use karo</button><button class="btn sm" data-act="prev" data-id="${esc(v.id)}">Sunao</button><button class="btn sm" data-act="copy" data-id="${esc(v.id)}">ID copy</button>${v.is_owner ? `<button class="btn sm danger" data-act="del" data-id="${esc(v.id)}">Delete</button>` : ""}</div>
+  </article>`).join("");
+  el("vmore").hidden = list.length <= S.vShow;
+}
+let prevAudio = null;
+async function previewVoice(v) {
+  try { if (prevAudio) prevAudio.pause(); } catch (_) {}
+  if (v.preview) { prevAudio = new Audio(v.preview); prevAudio.play().catch(() => toast("Preview nahi chala")); return; }
+  if (!S.key) { toast("Pehle connect karo"); return; }
+  toast("Chhota sample ban raha hai...");
+  try {
+    const parts = [], lang = v.language || "en";
+    const txt = lang === "hi" ? "नमस्ते, यह मेरी आवाज़ का छोटा सा नमूना है।" : "Hello, this is a quick preview of my voice.";
+    await synthChunk(txt, { model: "sonic-3.5", voiceId: v.id, language: lang, format: { container: "raw", encoding: "pcm_s16le", sample_rate: 24000 }, gen: {} }, null, u => parts.push(u));
+    prevAudio = new Audio(URL.createObjectURL(wavFromPcm(parts, 24000))); prevAudio.play().catch(() => {});
+  } catch (e) { toast(friendly(e).short); log("error", "Preview fail: " + e.message); }
+}
+el("vlist").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) return; const v = S.voices.find(x => x.id === b.dataset.id); if (!v) return;
+  const a = b.dataset.act;
+  if (a === "use") { selectVoice(v); showTab("studio"); toast(v.name + " chuni gayi"); }
+  else if (a === "prev") previewVoice(v);
+  else if (a === "copy") copy(v.id, "Voice ID copy ho gayi");
+  else if (a === "fav") { S.favs.has(v.id) ? S.favs.delete(v.id) : S.favs.add(v.id); renderVoices(); }
+  else if (a === "del") {
+    if (!confirm(v.name + " permanently delete ho jayegi. Pakka?")) return;
+    try { await api("/voices/" + encodeURIComponent(v.id), { method: "DELETE" }); S.voices = S.voices.filter(x => x.id !== v.id); renderVoices(); renderStatus(); toast("Delete ho gayi"); log("ok", "Voice delete: " + v.name); }
+    catch (er) { toast(friendly(er).short); log("error", "Delete fail: " + er.message); }
+  }
+});
+["vq", "vlang", "vgender", "vown", "vfav"].forEach(id => el(id).addEventListener(id === "vq" ? "input" : "change", () => { S.vShow = 48; renderVoices(); }));
+el("vmore").addEventListener("click", () => { S.vShow += 48; renderVoices(); });
+el("vreload").addEventListener("click", () => { if (!S.key) { toast("Pehle connect karo"); return; } loadVoices(); });
+function selectVoice(v) { S.voiceId = v.id; S.voiceName = v.name; S.voiceLang = v.language || ""; renderVsum(); renderVoices(); }
+function renderVsum() {
+  const v = S.voices.find(x => x.id === S.voiceId);
+  el("vsum").innerHTML = `<div class="vn" style="font-family:var(--display);font-size:19px">${esc(S.voiceName)}</div>
+    <div class="row" style="gap:6px">${S.voiceLang ? `<span class="chip">${esc(LN(S.voiceLang))}</span>` : ""}${v && v.gender ? `<span class="chip">${GL_[v.gender] || ""}</span>` : ""}${v && v.is_owner ? '<span class="chip ok">Meri</span>' : ""}</div>
+    <div class="idbox">${esc(S.voiceId)}</div>`;
+}
+el("vidSet").addEventListener("click", () => {
+  const id = el("vidInp").value.trim(); if (id.length < 8) { toast("Sahi Voice ID daalo"); return; }
+  const v = S.voices.find(x => x.id === id);
+  if (v) selectVoice(v); else { S.voiceId = id; S.voiceName = "Custom voice"; S.voiceLang = ""; renderVsum(); }
+  el("vidInp").value = ""; toast("Voice ID set ho gayi");
+});
+el("goVoices").addEventListener("click", () => showTab("voices"));
+
+/* ============================ audio engine ============================ */
+function ensureAC() {
+  if (!S.ac) {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    S.ac = new C(); S.analyser = S.ac.createAnalyser(); S.analyser.fftSize = 128; S.analyser.smoothingTimeConstant = .8;
+    S.analyser.connect(S.ac.destination); S.freq = new Uint8Array(S.analyser.frequencyBinCount);
+    try { S.playerNode = S.ac.createMediaElementSource(el("player")); S.playerNode.connect(S.analyser); } catch (_) {}
+  }
+  if (S.ac.state === "suspended") S.ac.resume().catch(() => {});
+  return S.ac;
+}
+el("player").addEventListener("play", () => ensureAC());
+const Live = { next: 0, left: new Uint8Array(0), nodes: [] };
+function liveStart() { const ac = ensureAC(); if (!ac) return; Live.next = ac.currentTime + .15; Live.left = new Uint8Array(0); Live.nodes = []; }
+function liveFeed(u8, sr) {
+  if (!S.ac) return; let buf = u8;
+  if (Live.left.length) { buf = new Uint8Array(Live.left.length + u8.length); buf.set(Live.left); buf.set(u8, Live.left.length); }
+  const n = buf.length >> 1; Live.left = buf.slice(n * 2); if (!n) return;
+  const dv = new DataView(buf.buffer, buf.byteOffset, n * 2), f = new Float32Array(n);
+  for (let i = 0; i < n; i++) f[i] = dv.getInt16(i * 2, true) / 32768;
+  const ab = S.ac.createBuffer(1, n, sr); ab.copyToChannel(f, 0);
+  const src = S.ac.createBufferSource(); src.buffer = ab; src.connect(S.analyser);
+  const t = Math.max(Live.next, S.ac.currentTime + .03); src.start(t); Live.next = t + ab.duration;
+  Live.nodes.push(src); src.onended = () => { Live.nodes = Live.nodes.filter(x => x !== src); };
+}
+function liveStop() { Live.nodes.forEach(n => { try { n.stop(); } catch (_) {} }); Live.nodes = []; }
+function wavFromPcm(parts, sr) {
+  const len = parts.reduce((a, p) => a + p.length, 0), h = new ArrayBuffer(44), v = new DataView(h);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + len, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, len, true);
+  return new Blob([h, ...parts], { type: "audio/wav" });
+}
+function floatToWav(chunks, sr) {
+  const n = chunks.reduce((a, c) => a + c.length, 0), pcm = new Uint8Array(n * 2), dv = new DataView(pcm.buffer); let o = 0;
+  for (const c of chunks) for (let i = 0; i < c.length; i++) { const s = Math.max(-1, Math.min(1, c[i])); dv.setInt16(o, s < 0 ? s * 32768 : s * 32767, true); o += 2; }
+  return wavFromPcm([pcm], sr);
+}
+
+/* ============================ TTS ============================ */
+function splitText(text, max) {
+  const t = text.replace(/<[^>]*>/g, m => m.replace(/\./g, "\u0001")).replace(/\[[^\]]*\]/g, m => m.replace(/\./g, "\u0001"));
+  const sents = t.match(/[^।॥.!?\n]+[।॥.!?]*["”’')\]]*\s*|\n+|[।॥.!?]+\s*/g) || [t];
+  const out = []; let cur = "";
+  const push = s => { s = s.replace(/\u0001/g, ".").trim(); if (s) out.push(s); };
+  for (let s of sents) {
+    if (s.length > max) {
+      if (cur) { push(cur); cur = ""; }
+      const words = s.split(/(\s+)/); let b = "";
+      for (const w of words) { if ((b + w).length > max && b) { push(b); b = ""; } b += w; }
+      cur = b; continue;
+    }
+    if ((cur + s).length > max && cur) { push(cur); cur = ""; }
+    cur += s;
+  }
+  if (cur) push(cur);
+  return out;
+}
+async function synthChunk(text, o, signal, onData) {
+  const body = { model_id: o.model, transcript: text, voice: { mode: "id", id: o.voiceId }, output_format: o.format };
+  if (o.gen && Object.keys(o.gen).length) body.generation_config = o.gen;
+  if (o.language) body.language = o.language;
+  let attempt = 0;
+  for (;;) {
+    let got = 0;
+    try {
+      const t0 = performance.now(), res = await api("/tts/bytes", { method: "POST", json: body, signal, timeout: 45000 });
+      noteLatency(performance.now() - t0);
+      if (res.body && res.body.getReader) {
+        const rd = res.body.getReader();
+        for (;;) { const { done, value } = await rd.read(); if (done) break; if (value && value.length) { got += value.length; onData(value); S.totalDown += value.length; S.speed = got / 1024 / ((performance.now() - t0) / 1000); } }
+      } else { const u = new Uint8Array(await res.arrayBuffer()); got = u.length; onData(u); S.totalDown += got; S.speed = got / 1024 / ((performance.now() - t0) / 1000); }
+      renderStatus(); return;
+    } catch (e) {
+      if (e.name === "AbortError") throw e;
+      const retry = !got && (e.status === 429 || e.status >= 500 || e.code === "NETWORK" || e.code === "TIMEOUT");
+      if (retry && attempt < 2) { attempt++; log("warn", "Dobara koshish " + attempt + ": " + e.message); await sleep(900 * attempt, signal); continue; }
+      throw e;
+    }
+  }
+}
+function fmtSpec(v) {
+  const m = { wav44: [44100, "wav"], wav24: [24000, "wav"], wav48: [48000, "wav"] };
+  if (m[v]) return { kind: "wav", sr: m[v][0], format: { container: "raw", encoding: "pcm_s16le", sample_rate: m[v][0] } };
+  return { kind: "mp3", sr: 44100, format: { container: "mp3", sample_rate: 44100, bit_rate: v === "mp3192" ? 192000 : 128000 } };
+}
+async function generate() {
+  el("genSuccess").classList.remove("show");
+  if (S.busy) return;
+  if (!S.key) { toast("Pehle API key connect karo"); showTab("connect"); return; }
+  const text = el("txt").value.trim(); if (!text) { toast("Pehle text likho"); return; }
+  const spec = fmtSpec(el("fmt").value), live = el("live").checked && spec.kind === "wav";
+  const lang = el("lang").value === "auto" ? (S.voiceLang || "") : el("lang").value;
+  const gen = { speed: +el("spd").value, volume: +el("vol").value }; if (el("emo").value) gen.emotion = el("emo").value;
+  const o = { model: el("model").value, voiceId: S.voiceId, language: lang, format: spec.format, gen };
+  const chunks = splitText(text, Math.min(3000, Math.max(200, +el("chunk").value || 1000))), gapSec = +el("gap").value || 0;
+  const ctrl = new AbortController(); S.abort = ctrl; S.busy = true; el("gen").disabled = true; el("stop").hidden = false;
+  el("prog").hidden = false; el("progBar").style.width = "0%"; el("dl").disabled = true;
+  const parts = [], t0 = performance.now(); let bytes = 0; log("info", "Generate shuru: " + chunks.length + " hissa, " + text.length + " chars");
+  try { el("player").pause(); } catch (_) {} liveStop(); if (live) liveStart(); else ensureAC();
+  const tick = setInterval(() => { el("progTxt").textContent = progText(0); }, 500);
+  let idx = 0;
+  const progText = () => `Hissa ${Math.min(idx + 1, chunks.length)}/${chunks.length}, ${fmtB(bytes)}, ${S.speed ? S.speed.toFixed(0) + " KB/s" : "-"}, ${((performance.now() - t0) / 1000).toFixed(1)} sec`;
+  try {
+    for (idx = 0; idx < chunks.length; idx++) {
+      await synthChunk(chunks[idx], o, ctrl.signal, u => { parts.push(u); bytes += u.length; if (live) liveFeed(u, spec.sr); });
+      if (spec.kind === "wav" && gapSec && idx < chunks.length - 1) {
+        const z = new Uint8Array(Math.round(spec.sr * gapSec) * 2); parts.push(z); bytes += z.length; if (live) liveFeed(z, spec.sr);
+      }
+      el("progBar").style.width = ((idx + 1) / chunks.length * 100).toFixed(0) + "%"; el("progTxt").textContent = progText();
+    }
+    const blob = spec.kind === "wav" ? wavFromPcm(parts, spec.sr) : new Blob(parts, { type: "audio/mpeg" });
+    const dur = spec.kind === "wav" ? bytes / (spec.sr * 2) : 0, ext = spec.kind === "wav" ? "wav" : "mp3";
+    addHistory(blob, ext, dur, text);
+    el("progTxt").textContent = "Ho gaya. " + fmtB(blob.size) + ", " + ((performance.now() - t0) / 1000).toFixed(1) + " sec mein.";
+    log("ok", "Generate poora: " + fmtB(blob.size) + " in " + ((performance.now() - t0) / 1000).toFixed(1) + "s");
+    toast("Awaaz taiyaar hai");
+    if (!live) el("player").play().catch(() => {});
+  } catch (e) {
+    liveStop();
+    if (e.name === "AbortError") { toast("Roka gaya"); log("info", "Generate roka gaya"); el("progTxt").textContent = "Roka gaya."; }
+    else { const f = friendly(e); el("progTxt").textContent = f.short + ". " + f.long; toast(f.short); log("error", "Generate fail: " + (e.status || e.code) + " " + e.message); setState(e.status === 401 || e.status === 403 ? "error" : S.state, e.status === 401 || e.status === 403 ? e : null); }
+  } finally { clearInterval(tick); S.busy = false; S.abort = null; el("gen").disabled = false; el("stop").hidden = true; }
+}
+el("gen").addEventListener("click", generate);
+el("stop").addEventListener("click", () => { if (S.abort) S.abort.abort(); });
+function addHistory(blob, ext, dur, text) {
+  const it = { id: Date.now() + Math.random(), url: URL.createObjectURL(blob), blob, ext, dur, voice: S.voiceName, text, t: new Date() };
+  S.hist.unshift(it); while (S.hist.length > 25) { const old = S.hist.pop(); URL.revokeObjectURL(old.url); }
+  setCurrent(it); renderHist();
+}
+function setCurrent(it) {
+  S.lastBlob = it.blob; S.lastExt = it.ext; el("player").src = it.url; el("dl").disabled = false;
+  el("outInfo").textContent = fmtB(it.blob.size) + (it.dur ? ", " + fmtT(it.dur) + " min" : "") + ", " + it.ext.toUpperCase();
+}
+function renderHist() {
+  const h = el("hist");
+  if (!S.hist.length) { h.innerHTML = '<span class="muted small">Yahan ban chuki awaazein dikhengi.</span>'; return; }
+  h.innerHTML = S.hist.map(it => `<div class="hitem"><div class="row sb"><b>${esc(it.voice)}</b><span class="small muted">${it.t.toLocaleTimeString()}</span></div>
+    <div class="small muted">${esc(it.text.slice(0, 90))}${it.text.length > 90 ? "..." : ""}</div>
+    <div class="row" style="gap:8px"><button class="btn sm" data-h="play" data-id="${it.id}">Chalao</button><button class="btn sm primary" data-h="dl" data-id="${it.id}">Download</button><button class="btn sm danger" data-h="rm" data-id="${it.id}">Hatao</button><span class="chip">${fmtB(it.blob.size)}</span></div></div>`).join("");
+}
+el("hist").addEventListener("click", e => {
+  const b = e.target.closest("[data-h]"); if (!b) return; const it = S.hist.find(x => String(x.id) === b.dataset.id); if (!it) return;
+  if (b.dataset.h === "play") { liveStop(); setCurrent(it); ensureAC(); el("player").play().catch(() => {}); }
+  else if (b.dataset.h === "dl") saveBlob(it.blob, "love-voice-" + stamp() + "." + it.ext);
+  else { URL.revokeObjectURL(it.url); S.hist = S.hist.filter(x => x !== it); renderHist(); }
+});
+el("histClear").addEventListener("click", () => { S.hist.forEach(i => URL.revokeObjectURL(i.url)); S.hist = []; renderHist(); });
+el("dl").addEventListener("click", () => { if (S.lastBlob) saveBlob(S.lastBlob, "love-voice-" + stamp() + "." + S.lastExt); });
+
+/* studio ui */
+const upTxt = () => { const t = el("txt").value; el("txtInfo").textContent = t.length.toLocaleString("en-IN") + " characters, " + (t.trim() ? splitText(t, Math.max(200, +el("chunk").value || 1000)).length : 0) + " hisse"; };
+el("txt").addEventListener("input", upTxt); el("chunk").addEventListener("input", upTxt);
+el("spd").addEventListener("input", () => el("spdOut").textContent = (+el("spd").value).toFixed(2).replace(/0$/, "") + "x");
+el("vol").addEventListener("input", () => el("volOut").textContent = (+el("vol").value).toFixed(1) + "x");
+el("sample").addEventListener("change", () => { const s = SAMPLES[el("sample").value]; if (s) { el("txt").value = s; upTxt(); if (el("sample").value.startsWith("hi")) el("lang").value = "hi"; } el("sample").value = ""; });
+$$("[data-ins]").forEach(b => b.addEventListener("click", () => { const t = el("txt"), s = t.selectionStart || t.value.length; t.value = t.value.slice(0, s) + b.dataset.ins + t.value.slice(t.selectionEnd || s); t.focus(); upTxt(); }));
+function fillSelects() {
+  const opt = (v, t) => `<option value="${v}">${esc(t)}</option>`;
+  el("lang").innerHTML = opt("auto", "Auto (awaaz ke hisaab se)") + LANGS.map(c => opt(c, LN(c))).join("");
+  el("emo").innerHTML = EMOS.map(e => opt(e, e ? e[0].toUpperCase() + e.slice(1) : "Default (awaaz jaisi)")).join("");
+  el("cLang").innerHTML = LANGS.map(c => opt(c, LN(c))).join(""); el("cLang").value = "hi";
+  el("sLang").innerHTML = LANGS.map(c => opt(c, LN(c))).join(""); el("sLang").value = "hi";
+}
+
+/* ============================ recorder (WAV, har device par chalta hai) ============================ */
+function makeRecorder(btn, stateEl, onDone, maxSec) {
+  let rec = null;
+  btn.addEventListener("click", async () => {
+    if (rec) { rec.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const C = window.AudioContext || window.webkitAudioContext, ctx = new C(), src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+      mute.gain.value = 0; const chunks = []; let t0 = Date.now();
+      proc.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+      src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+      const tm = setInterval(() => { const s = (Date.now() - t0) / 1000; stateEl.textContent = "Record ho raha hai: " + s.toFixed(0) + " sec"; if (s >= maxSec) rec && rec.stop(); }, 250);
+      btn.textContent = "Record roko";
+      rec = { stop() {
+        clearInterval(tm); try { proc.disconnect(); src.disconnect(); } catch (_) {} stream.getTracks().forEach(t => t.stop());
+        const sr = ctx.sampleRate; ctx.close().catch(() => {}); rec = null; btn.textContent = "Mic se record karo";
+        if (!chunks.length) { stateEl.textContent = "Kuch record nahi hua."; return; }
+        onDone(floatToWav(chunks, sr), "recording-" + stamp() + ".wav");
+      } };
+    } catch (e) { stateEl.textContent = "Mic permission nahi mili ya mic nahi hai."; log("error", "Mic: " + e.message); }
+  });
+}
+function showClip(audioEl, blob) { if (audioEl._u) URL.revokeObjectURL(audioEl._u); audioEl._u = URL.createObjectURL(blob); audioEl.src = audioEl._u; audioEl.hidden = false; }
+
+/* ============================ clone ============================ */
+const CLONE_EXT = ["flac", "mp3", "mpeg", "mpga", "oga", "ogg", "wav", "webm"];
+el("cFile").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const ext = (f.name.split(".").pop() || "").toLowerCase();
+  if (!CLONE_EXT.includes(ext)) { toast("Sirf " + CLONE_EXT.join(", ") + " format chalega"); return; }
+  if (f.size > 16 * 1048576) { toast("File 16 MB se chhoti honi chahiye"); return; }
+  S.cloneBlob = f; S.cloneName = f.name; el("cRecState").textContent = f.name + " (" + fmtB(f.size) + ")"; showClip(el("cPrev"), f);
+  if (!el("cName").value) el("cName").value = f.name.replace(/\.[^.]+$/, "").slice(0, 40);
+});
+makeRecorder(el("cRec"), el("cRecState"), (blob, name) => { S.cloneBlob = blob; S.cloneName = name; el("cRecState").textContent = "Record hua: " + fmtB(blob.size); showClip(el("cPrev"), blob); }, 60);
+el("cGo").addEventListener("click", async () => {
+  const msg = el("cMsg");
+  if (!S.key) { msg.textContent = "Pehle API connect karo."; return; }
+  if (!S.cloneBlob) { msg.textContent = "Pehle audio clip chuno ya record karo."; return; }
+  const name = el("cName").value.trim(); if (!name) { msg.textContent = "Naam daalo."; return; }
+  if (!el("cOk").checked) { msg.textContent = "Permission wala box tick karo."; return; }
+  el("cGo").disabled = true; msg.innerHTML = '<span class="pulse"></span> Clone ban raha hai, thoda ruko...';
+  try {
+    const fd = new FormData(); fd.append("clip", S.cloneBlob, S.cloneName || "clip.wav"); fd.append("name", name); fd.append("language", el("cLang").value);
+    if (el("cTag").value.trim()) fd.append("tagline", el("cTag").value.trim());
+    if (el("cDesc").value.trim()) fd.append("description", el("cDesc").value.trim());
+    fd.append("access[type]", el("cAcc").value);
+    const res = await api("/voices/clone", { method: "POST", form: fd, timeout: 120000 }); const j = await res.json();
+    const v = normVoice({ ...j, is_owner: true }); S.voices.unshift(v); buildLangFilter(); renderVoices(); renderStatus();
+    msg.textContent = "Clone ban gaya."; log("ok", "Clone bana: " + v.name);
+    el("cRes").innerHTML = `<div class="vn" style="font-family:var(--display);font-size:19px">${esc(v.name)}</div><div class="idbox">${esc(v.id)}</div>
+      <div class="row"><button class="btn sm" id="rCopy" type="button">ID copy</button><button class="btn sm primary" id="rUse" type="button">Studio mein use karo</button></div>`;
+    el("rCopy").onclick = () => copy(v.id, "Voice ID copy ho gayi");
+    el("rUse").onclick = () => { selectVoice(v); showTab("studio"); toast(v.name + " chuni gayi"); };
+  } catch (e) { const f = friendly(e); msg.textContent = f.short + ". " + f.long; log("error", "Clone fail: " + (e.status || e.code) + " " + e.message); }
+  finally { el("cGo").disabled = false; }
+});
+
+/* ============================ speech to text ============================ */
+const STT_EXT = ["flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "oga", "ogg", "wav", "webm"];
+el("sFile").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const ext = (f.name.split(".").pop() || "").toLowerCase(); if (!STT_EXT.includes(ext)) { toast("Ye format support nahi hai"); return; }
+  S.sttBlob = f; S.sttName = f.name; el("sState").textContent = f.name + " (" + fmtB(f.size) + ")"; showClip(el("sPrev"), f);
+});
+makeRecorder(el("sRec"), el("sState"), (blob, name) => { S.sttBlob = blob; S.sttName = name; el("sState").textContent = "Record hua: " + fmtB(blob.size); showClip(el("sPrev"), blob); }, 300);
+el("sGo").addEventListener("click", async () => {
+  const msg = el("sMsg");
+  if (!S.key) { msg.textContent = "Pehle API connect karo."; return; }
+  if (!S.sttBlob) { msg.textContent = "Pehle audio chuno ya record karo."; return; }
+  el("sGo").disabled = true; msg.innerHTML = '<span class="pulse"></span> Text nikal raha hu...';
+  try {
+    const fd = new FormData(); fd.append("file", S.sttBlob, S.sttName || "audio.wav"); fd.append("model", "ink-whisper"); fd.append("language", el("sLang").value);
+    const t0 = performance.now(); const res = await api("/stt", { method: "POST", form: fd, timeout: 180000 }); const j = await res.json();
+    el("sOut").value = j.text || ""; msg.textContent = "Ho gaya" + (j.duration ? ", audio " + fmtT(j.duration) + " min ki thi" : "") + ", " + ((performance.now() - t0) / 1000).toFixed(1) + " sec mein."; log("ok", "STT poora");
+  } catch (e) { const f = friendly(e); msg.textContent = f.short + ". " + f.long; log("error", "STT fail: " + (e.status || e.code) + " " + e.message); }
+  finally { el("sGo").disabled = false; }
+});
+el("sCopy").addEventListener("click", () => copy(el("sOut").value));
+el("sDl").addEventListener("click", () => { const t = el("sOut").value; if (!t) { toast("Kuch nahi hai"); return; } saveBlob(new Blob([t], { type: "text/plain;charset=utf-8" }), "transcript-" + stamp() + ".txt"); });
+el("sToStudio").addEventListener("click", () => { const t = el("sOut").value; if (!t) { toast("Kuch nahi hai"); return; } el("txt").value = t; upTxt(); showTab("studio"); });
+
+
+/* ============================ pricing UI ============================ */
+const PRICING_DEFAULTS = [
+  {id:"day",name:"1 DAY PLAN",mrp:399,price:199,days:1,label:""},
+  {id:"14d",name:"14 DAYS PLAN",mrp:1499,price:899,days:14,label:""},
+  {id:"28d",name:"28 DAYS PLAN",mrp:2499,price:1499,days:28,label:"MOST POPULAR"},
+  {id:"90d",name:"90 DAYS PLAN",mrp:4999,price:2999,days:90,label:"BEST VALUE"},
+  {id:"year",name:"1 YEAR PLAN",mrp:19999,price:9999,days:365,label:"PREMIUM ANNUAL PLAN"}
+];
+let selectedPlan = null;
+let pricingSettings = {taxEnabled:false,taxRate:18,serviceFee:20,taxInclusive:false};
+const money = n => new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
+function loadPricingSettings(){
+  try{const saved=JSON.parse(localStorage.getItem("lv_pricing_preview")||"null");if(saved)pricingSettings={...pricingSettings,...saved};}catch(_){}
+  el("taxEnabled").value=String(pricingSettings.taxEnabled);
+  el("taxRate").value=pricingSettings.taxRate;
+  el("serviceFee").value=pricingSettings.serviceFee;
+  el("taxInclusive").checked=!!pricingSettings.taxInclusive;
+}
+function renderPlans(){
+  el("planGrid").innerHTML=PRICING_DEFAULTS.map(p=>`<article class="plan-card ${p.id==="28d"?"popular":""}">
+    ${p.label?`<span class="plan-ribbon">${esc(p.label)}</span>`:"<span class=\"plan-ribbon\">VOICE CREATION</span>"}
+    <div class="plan-name">${esc(p.name)}</div>
+    <div class="plan-price">${money(p.price)}</div>
+    <div class="plan-mrp">${money(p.mrp)} MRP</div>
+    <div class="plan-valid">${p.days} ${p.days===1?"day":"days"} validity · Save ${Math.round((p.mrp-p.price)/p.mrp*100)}%</div>
+    <button class="btn ${p.id==="28d"?"primary":""}" data-plan="${p.id}" type="button">Choose plan</button>
+  </article>`).join("");
+}
+function selectPlan(id){
+  const p=PRICING_DEFAULTS.find(x=>x.id===id);if(!p)return;selectedPlan=p;
+  const discount=p.mrp-p.price;
+  const tax=pricingSettings.taxEnabled&&!pricingSettings.taxInclusive?p.price*(pricingSettings.taxRate/100):0;
+  const total=p.price+tax+Number(pricingSettings.serviceFee||0);
+  el("checkoutEmpty").hidden=true;el("checkoutBox").hidden=false;
+  el("checkoutPlan").textContent=p.name;el("checkoutValidity").textContent=p.days+" days";
+  el("coMrp").textContent=money(p.mrp);el("coDiscount").textContent="−"+money(discount);
+  el("coPrice").textContent=money(p.price);
+  el("coTaxLabel").textContent=pricingSettings.taxEnabled?(pricingSettings.taxInclusive?"GST (included in plan price)":"GST ("+pricingSettings.taxRate+"%)"):"GST (not applied)";
+  el("coTax").textContent=money(tax);
+  el("coFee").textContent=money(pricingSettings.serviceFee);
+  el("coTotal").textContent=money(total);
+}
+el("planGrid").addEventListener("click",e=>{const b=e.target.closest("[data-plan]");if(b)selectPlan(b.dataset.plan);});
+el("payNow").addEventListener("click",()=>toast("Payment backend abhi connect nahi hai. Payment activate nahi kiya gaya."));
+el("ownerPricingBtn").addEventListener("click",()=>{el("ownerPricing").hidden=!el("ownerPricing").hidden;});
+el("ownerPricingUnlock").addEventListener("click",async()=>{
+  if(!authState.owner){toast("Owner login required");return;}
+  el("ownerPricingFields").hidden=false;toast("Owner settings open ho gayi");
+});
+el("savePricingSettings").addEventListener("click",()=>{
+  const rate=Number(el("taxRate").value),fee=Number(el("serviceFee").value);
+  if(!Number.isFinite(rate)||rate<0||rate>28||!Number.isFinite(fee)||fee<0){toast("GST ya fee ki value check karo");return;}
+  pricingSettings={taxEnabled:el("taxEnabled").value==="true",taxRate:rate,serviceFee:fee,taxInclusive:el("taxInclusive").checked};
+  try{localStorage.setItem("lv_pricing_preview",JSON.stringify(pricingSettings));}catch(_){}
+  if(selectedPlan)selectPlan(selectedPlan.id);
+  el("pricingSaved").textContent="Preview settings save ho gayi.";toast("Settings save ho gayi");
+});
+
+/* ============================ tabs ============================ */
+const TABS = ["studio", "voices", "clone", "stt", "pricing", "owner", "connect"];
+function showTab(n) {
+  if(n==="owner"&&!authState.owner){toast("Owner login required");return;}
+  TABS.forEach(t => { el("p-" + t).hidden = t !== n; });
+  $$(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === n));
+  if (n === "voices") renderVoices();
+  if (n === "owner") loadOwnerCodes();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+$$(".tab").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+el("statusBar").addEventListener("click", () => showTab("connect"));
+el("connBtn").addEventListener("click", connect);
+el("discBtn").addEventListener("click", disconnect);
+el("keyInp").addEventListener("keydown", e => { if (e.key === "Enter") connect(); });
+el("keyShow").addEventListener("click", () => { const i = el("keyInp"); i.type = i.type === "password" ? "text" : "password"; el("keyShow").textContent = i.type === "password" ? "Dikhao" : "Chhupao"; });
+el("spdTest").addEventListener("click", speedTest);
+el("logClear").addEventListener("click", () => { logs.length = 0; el("log").textContent = "Abhi kuch nahi."; });
+addEventListener("online", () => { renderStatus(); renderDiag(); log("info", "Internet wapas aaya"); });
+addEventListener("offline", () => { renderStatus(); renderDiag(); log("warn", "Internet gaya"); });
+if (navigator.connection) navigator.connection.addEventListener("change", () => { renderStatus(); renderDiag(); });
+let errToast = 0;
+addEventListener("error", e => { log("error", "Page error: " + (e.message || "")); if (Date.now() - errToast > 4000) { errToast = Date.now(); toast("Chhoti dikkat aayi, par app chal raha hai"); } });
+addEventListener("unhandledrejection", e => { log("error", "Promise error: " + (e.reason && e.reason.message || e.reason)); e.preventDefault(); });
+
+/* ============================ server-backed access & owner auth ============================ */
+const ACCESS_API_BASE = "";
+const authState = { accessCode:"", email:"", owner:false, ownerCodes:[], ownerHistory:[] };
+async function accessApi(path, options={}) {
+  const response = await fetch(ACCESS_API_BASE + path, {
+    method: options.method || "GET",
+    headers: {"Content-Type":"application/json", ...(options.headers||{})},
+    credentials:"include",
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+  const data = await response.json().catch(()=>({error:"Invalid server response"}));
+  if(!response.ok) throw new Error(data.error || "Server request failed ("+response.status+")");
+  return data;
+}
+function showAuthStep(){ el("step1").hidden=false; setErr("pwErr",""); setErr("passwordErr",""); }
+function friendlyLoginError(error){
+  const message=String(error&&error.message||error||"");
+  if(/failed to fetch|networkerror|load failed|fetch failed/i.test(message)) return "Love Voice server se connection nahi ho raha. Sirf index.html file kholne se login nahi chalega. Poora backend Node server par chalao aur usi website link se kholo.";
+  return message || "Login nahi ho paya. Dobara try karo.";
+}
+async function openWithPassword(){
+  const password=el("sitePassword").value;
+  if(!password){setErr("passwordErr","Password daalo.");return;}
+  const btn=el("passwordOpenBtn");btn.disabled=true;setErr("passwordErr","Password check ho raha hai...");
+  try{await accessApi("/api/auth/password",{method:"POST",body:{password}});el("sitePassword").value="";unlock();toast("Love Voice open ho gaya ✨");}
+  catch(e){setErr("passwordErr",friendlyLoginError(e));}
+  finally{btn.disabled=false;}
+}
+async function openWithAccessCode(){
+  const code=el("accessCode").value.trim();
+  if(!/^\d{6}$/.test(code)){setErr("pwErr","6 digit access code daalo.");return;}
+  const btn=el("accessCodeOpenBtn");btn.disabled=true;setErr("pwErr","Access code check ho raha hai...");
+  try{const result=await accessApi("/api/auth/access",{method:"POST",body:{code}});authState.accessCode=code;authState.email="";el("accessCode").value="";unlock();toast("Access code accepted · Group "+result.group);}
+  catch(e){setErr("pwErr",friendlyLoginError(e));}
+  finally{btn.disabled=false;}
+}
+function unlock(){
+  S.unlocked=true;el("lock").hidden=true;el("app").hidden=false;document.body.classList.add("in-app");GLX.mode("app");S.lastAct=Date.now();
+  window.scrollTo(0,0);
+  if(CONFIG.DEFAULT_API_KEY){el("keyInp").value=CONFIG.DEFAULT_API_KEY;connect();}
+}
+function lockNow(){
+  if(S.busy&&S.abort)S.abort.abort();liveStop();try{el("player").pause();}catch(_){}
+  S.key="";S.voices=[];S.connected=false;el("keyInp").value="";setState("idle");S.unlocked=false;
+  el("app").hidden=true;el("lock").hidden=false;document.body.classList.remove("in-app");GLX.mode("lock");
+  authState.accessCode="";authState.email="";showAuthStep();renderVoices();
+}
+el("passwordOpenBtn").addEventListener("click",openWithPassword);
+el("sitePassword").addEventListener("keydown",e=>{if(e.key==="Enter")openWithPassword();});
+el("accessCodeOpenBtn").addEventListener("click",openWithAccessCode);
+el("accessCode").addEventListener("input",()=>{el("accessCode").value=el("accessCode").value.replace(/\D/g,"").slice(0,6);});
+el("accessCode").addEventListener("keydown",e=>{if(e.key==="Enter")openWithAccessCode();});
+async function resumeExistingSession(){
+  const btn=el("resumeSessionBtn");btn.disabled=true;
+  try{
+    const me=await accessApi("/api/auth/me");authState.email=me.email||"";authState.accessCode=me.accessCode||"";unlock();toast("Welcome back");return;
+  }catch(_){}
+  try{
+    await accessApi("/api/owner/me");authState.owner=true;el("ownerTab").hidden=false;unlock();showTab("owner");toast("Owner session restored");
+  }catch(_){setErr("pwErr","Koi active session nahi mila. Password ya access code se login karo.");}
+  finally{btn.disabled=false;}
+}
+async function ownerLogin(){
+  el("ownerLoginBtn").disabled=true;setErr("ownerLoginErr","Signing in...");
+  try{
+    await accessApi("/api/owner/login",{method:"POST",body:{password:el("ownerLoginPassword").value}});
+    el("ownerLoginPassword").value="";authState.owner=true;el("ownerTab").hidden=false;
+    unlock();showTab("owner");toast("Owner dashboard unlocked");
+  }catch(e){setErr("ownerLoginErr",e.message);}
+  finally{el("ownerLoginBtn").disabled=false;}
+}
+async function ownerLogout(){
+  try{await accessApi("/api/owner/logout",{method:"POST",body:{}});}catch(_){}
+  authState.owner=false;el("ownerTab").hidden=true;
+  if(document.getElementById("p-owner")&&!el("p-owner").hidden)showTab("studio");
+  toast("Owner session closed");
+}
+function ownerEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function timeLeft(ms){if(ms<=0)return "—";const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),sec=Math.floor(ms%60000/1000);return `${h}h ${m}m ${sec}s`;}
+function filteredOwnerCodes(){
+  const status=el("codeStatusFilter").value,group=el("codeGroupFilter").value,q=el("codeSearch").value.trim();
+  return authState.ownerCodes.filter(c=>(status==="all"||(status==="used"?c.usageCount>0:c.status===status))&&(group==="all"||String(c.group)===group)&&(!q||c.code.includes(q)));
+}
+function renderOwnerCodes(){
+  const list=filteredOwnerCodes();el("codesCount").textContent=list.length+" / 100 codes";
+  el("codesTable").innerHTML=list.map(c=>`<tr style="border-top:1px solid var(--line)">
+    <td style="padding:10px;font-weight:1000;letter-spacing:2px">${c.code}</td><td style="text-align:center">Group ${c.group}</td>
+    <td style="text-align:center">${ownerEsc(c.statusLabel)}</td>
+    <td style="text-align:center">${c.lastUsedAt?new Date(c.lastUsedAt).toLocaleString():"—"}</td>
+    <td style="text-align:center">${timeLeft(c.cooldownRemainingMs||0)}</td>
+    <td><button class="btn sm" data-copy-code="${c.code}" type="button">Copy Code</button></td></tr>`).join("")||'<tr><td colspan="6" class="muted" style="padding:14px">No matching codes.</td></tr>';
+  el("codeHistory").innerHTML=authState.ownerHistory.map(h=>`<article class="hitem"><div class="row sb"><b>${ownerEsc(h.code)}</b><span class="chip">Group ${h.group}</span></div><div class="small muted">${new Date(h.usedAt).toLocaleString()}</div></article>`).join("")||'<span class="muted small">No usage history yet.</span>';
+}
+async function loadOwnerCodes(){
+  if(!authState.owner)return;
+  try{
+    const [codes,history]=await Promise.all([accessApi("/api/owner/codes"),accessApi("/api/owner/history")]);
+    authState.ownerCodes=codes.codes;authState.ownerHistory=history.history;renderOwnerCodes();
+  }catch(e){toast(e.message);if(/owner|session|unauthorized/i.test(e.message))ownerLogout();}
+}
+el("ownerLoginBtn").addEventListener("click",ownerLogin);
+el("ownerLoginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")ownerLogin();});
+el("ownerLogoutBtn").addEventListener("click",ownerLogout);
+el("codesRefresh").addEventListener("click",loadOwnerCodes);
+["codeStatusFilter","codeGroupFilter"].forEach(id=>el(id).addEventListener("change",renderOwnerCodes));
+el("codeSearch").addEventListener("input",renderOwnerCodes);
+el("codesTable").addEventListener("click",e=>{const b=e.target.closest("[data-copy-code]");if(b)copy(b.dataset.copyCode,"Code copied");});
+el("copyAllCodes").addEventListener("click",()=>copy(authState.ownerCodes.map(c=>c.code).join("\n"),"All 100 codes copied"));
+el("downloadCodes").addEventListener("click",()=>{
+  const rows=[["code","group","status","last_used_at","cooldown_remaining_ms"],...authState.ownerCodes.map(c=>[c.code,c.group,c.status,c.lastUsedAt||"",c.cooldownRemainingMs||0])];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+  saveBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"love-voice-access-codes.csv");
+});
+el("lockBtn").addEventListener("click",lockNow);
+["pointerdown","keydown","touchstart"].forEach(ev=>addEventListener(ev,()=>{S.lastAct=Date.now();},{passive:true}));
+setInterval(()=>{if(S.unlocked&&!S.busy&&Date.now()-S.lastAct>CONFIG.IDLE_LOCK_MS){lockNow();toast("Idle rehne par lock ho gaya");}},15000);
+
+/* ============================ 3D scene ============================ */
+const GLX = (() => {
+  const st = { ok: false, mode: "lock", px: 0, py: 0, lv: 0, slow: 0, frames: 0, last: 0 };
+  let renderer, scene, cam, heart, glow, ring, bars = [], pts, group;
+  function init() {
+    try {
+      if (!window.THREE) throw new Error("three nahi mila");
+      const canvas = el("gl");
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      scene = new THREE.Scene(); cam = new THREE.PerspectiveCamera(42, 1, .1, 100); cam.position.set(0, 0, 7);
+      scene.add(new THREE.AmbientLight(0xffd0e0, .55));
+      const k = new THREE.PointLight(0xff3a7a, 1.6, 30); k.position.set(4, 4, 6); scene.add(k);
+      const f = new THREE.PointLight(0xffc857, .9, 30); f.position.set(-5, -2, 5); scene.add(f);
+      const d = new THREE.DirectionalLight(0xffffff, .8); d.position.set(0, 3, 6); scene.add(d);
+      const pp = []; for (let i = 0; i <= 140; i++) { const t = i / 140 * Math.PI * 2; pp.push(new THREE.Vector2(Math.pow(Math.sin(t), 3), (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 16)); }
+      const shape = new THREE.Shape(pp);
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: .45, bevelEnabled: true, bevelThickness: .2, bevelSize: .17, bevelSegments: 8, curveSegments: 48 }); geo.center();
+      const mat = new THREE.MeshPhysicalMaterial({ color: 0xff2d6f, metalness: .15, roughness: .28, clearcoat: 1, clearcoatRoughness: .12, emissive: 0x3a0016 });
+      heart = new THREE.Mesh(geo, mat);
+      glow = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xff2d6f, transparent: true, opacity: .14, side: THREE.BackSide, depthWrite: false })); glow.scale.setScalar(1.1);
+      group = new THREE.Group(); group.add(heart); group.add(glow); scene.add(group);
+      ring = new THREE.Group(); const bg = new THREE.BoxGeometry(.07, 1, .07); bg.translate(0, .5, 0);
+      const bm = new THREE.MeshBasicMaterial({ color: 0xffc857 });
+      for (let i = 0; i < 56; i++) { const a = i / 56 * Math.PI * 2, b = new THREE.Mesh(bg, bm); b.position.set(Math.cos(a) * 2.3, Math.sin(a) * 2.3, 0); b.rotation.z = a - Math.PI / 2; b.scale.y = .12; ring.add(b); bars.push(b); }
+      scene.add(ring);
+      const N = 380, pa = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) { const r = 3.5 + Math.random() * 4, th = Math.random() * 6.283, ph = Math.acos(2 * Math.random() - 1); pa[i * 3] = r * Math.sin(ph) * Math.cos(th); pa[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th); pa[i * 3 + 2] = r * Math.cos(ph) - 2; }
+      const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pa, 3));
+      pts = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xff7aa5, size: .05, transparent: true, opacity: .75 })); scene.add(pts);
+      canvas.addEventListener("webglcontextlost", e => { e.preventDefault(); st.ok = false; });
+      addEventListener("resize", resize); resize();
+      addEventListener("pointermove", e => { st.px = e.clientX / innerWidth * 2 - 1; st.py = -(e.clientY / innerHeight * 2 - 1); }, { passive: true });
+      st.ok = true; requestAnimationFrame(frame);
+    } catch (e) { st.ok = false; log("warn", "3D chalu nahi hua: " + e.message); }
+  }
+  function resize() { if (!renderer) return; const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+  function target() {
+    const asp = cam.aspect, wide = asp > 1.3;
+    if (st.mode === "lock") return { x: 0, y: wide ? .1 : .5, s: wide ? 1.35 : 1.05 };
+    return wide ? { x: 3.6, y: -.3, s: 1.1 } : { x: 0, y: 2.7, s: .6 };
+  }
+  function level() {
+    if (!S.analyser || !S.freq) return 0; S.analyser.getByteFrequencyData(S.freq); let s = 0; const n = Math.min(24, S.freq.length);
+    for (let i = 0; i < n; i++) s += S.freq[i]; return s / n / 255;
+  }
+  function frame(t) {
+    requestAnimationFrame(frame); if (!st.ok || document.hidden) return;
+    const dt = st.last ? t - st.last : 16; st.last = t;
+    if (dt > 45) st.slow++; if (++st.frames === 90) { if (st.slow > 45) { renderer.setPixelRatio(1); pts.visible = false; log("warn", "3D halka kiya (device slow)"); } st.frames = 0; st.slow = 0; }
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, lv = level(); st.lv += (lv - st.lv) * .18;
+    const tg = target(), g = group;
+    g.position.x += (tg.x - g.position.x) * .06; g.position.y += (tg.y - g.position.y) * .06;
+    const beat = reduce ? 0 : .035 * Math.sin(t * .0026), sc = tg.s * (1 + beat + st.lv * .3); g.scale.setScalar(g.scale.x + (sc - g.scale.x) * .2);
+    g.rotation.y = (reduce ? 0 : Math.sin(t * .0004) * .65) + st.px * .45; g.rotation.x = .06 - st.py * .22;
+    ring.position.copy(g.position); ring.scale.setScalar(g.scale.x * .95);
+    const fr = S.freq; for (let i = 0; i < bars.length; i++) { const v = fr ? fr[(i * 1.1 | 0) % fr.length] / 255 : 0, idle = reduce ? .12 : .12 + .05 * Math.sin(t * .003 + i * .5); bars[i].scale.y += ((idle + v * 1.3) - bars[i].scale.y) * .3; }
+    if (pts) pts.rotation.y = reduce ? 0 : t * .00006;
+    renderer.render(scene, cam);
+  }
+  return { init, mode: m => { st.mode = m; } };
+})();
+
+/* ============================ init ============================ */
+fillSelects(); renderVsum(); renderStatus(); renderDiag(); renderVoices(); upTxt(); renderPlans(); loadPricingSettings();
+GLX.init(); showAuthStep(1); resumeExistingSession();
+})();
+</script>
+</body>
+</html>
